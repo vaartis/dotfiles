@@ -25,7 +25,7 @@
  '(org-agenda-files nil)
  '(package-selected-packages
    (quote
-    (regtab use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum neotree llvm-mode dracula-theme rainbow-delimiters undo-tree)))
+    (expand-region whitespace-cleanup-moe whitespace-cleanup-mode company company-mode toml-mode regtab use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum neotree llvm-mode dracula-theme rainbow-delimiters undo-tree)))
  '(smooth-scrolling-mode t)
  '(vc-annotate-background "#2B2B2B")
  '(vc-annotate-color-map
@@ -56,6 +56,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(require 'site-gentoo)
 
 (setq gc-cons-threshold 100000000)
 
@@ -91,8 +93,8 @@
 (use-package undo-tree
   :config
   (global-undo-tree-mode 1)
-  :bind (("C-S-z" . redo)
-         ("C-z" . undo-tree-redo)))
+  :bind (("C-S-z" . undo-tree-redo)
+         ("C-z" . undo-tree-undo)))
 
 (use-package neotree
   :bind (([C-tab] . neotree-toggle)))
@@ -103,6 +105,17 @@
 (use-package nlinum
   :config
   (global-nlinum-mode 1))
+
+(use-package company
+  :config
+  (add-hook 'after-init-hook 'global-company-mode))
+
+(use-package whitespace-cleanup-mode
+  :config
+  (global-whitespace-cleanup-mode))
+
+(use-package expand-region
+  :bind (("C-x \\" . er/expand-region)))
 
 (add-hook 'prog-mode-hook 'electric-indent-mode)
 
