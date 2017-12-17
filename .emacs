@@ -6,8 +6,8 @@
 
 (setq package-archives
       '(("gnu" . "https://elpa.gnu.org/packages/")
-	("marmalade" . "https://marmalade-repo.org/packages/")
-	("melpa" . "https://melpa.org/packages/")))
+    ("marmalade" . "https://marmalade-repo.org/packages/")
+    ("melpa" . "https://melpa.org/packages/")))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -25,8 +25,9 @@
  '(org-agenda-files nil)
  '(package-selected-packages
    (quote
-    (expand-region whitespace-cleanup-moe whitespace-cleanup-mode company company-mode toml-mode regtab use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum neotree llvm-mode dracula-theme rainbow-delimiters undo-tree)))
+    (helm-projectile projectile sly-company sly realgud hindent intero cmake-ide company-irony irony cmake-font-lock paredit lua-mode cider expand-region whitespace-cleanup-moe whitespace-cleanup-mode company company-mode toml-mode use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum llvm-mode dracula-theme rainbow-delimiters undo-tree)))
  '(smooth-scrolling-mode t)
+ '(tramp-syntax (quote default) nil (tramp))
  '(vc-annotate-background "#2B2B2B")
  '(vc-annotate-color-map
    (quote
@@ -57,11 +58,11 @@
  ;; If there is more than one, they won't work right.
  )
 
+(setq exec-path (append exec-path '("~/.local/bin")))
+
 (require 'site-gentoo)
 
 (setq gc-cons-threshold 100000000)
-
-(add-to-list 'load-path "~/.emacs.d/other")
 
 (use-package use-package
   :init
@@ -74,11 +75,6 @@
 (use-package rainbow-delimiters
   :config
   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
-
-(use-package regtab
-  :ensure nil
-  :config
-  (add-hook 'prog-mode-hook 'regtab-mode))
 
 (use-package helm
   :demand t
@@ -95,9 +91,6 @@
   (global-undo-tree-mode 1)
   :bind (("C-S-z" . undo-tree-redo)
          ("C-z" . undo-tree-undo)))
-
-(use-package neotree
-  :bind (([C-tab] . neotree-toggle)))
 
 (use-package magit
   :bind (("C-x g" . magit-status)))
@@ -117,6 +110,56 @@
 (use-package expand-region
   :bind (("C-x \\" . er/expand-region)))
 
+(use-package paredit
+  :config
+  (add-hook 'clojure-mode-hook #'paredit-mode)
+  (add-hook 'lisp-mode-hook #'paredit-mode)
+  (add-hook 'emacs-lisp-mode-hook #'paredit-mode))
+
+(use-package irony
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(use-package company-irony
+  :config
+  (eval-after-load 'company
+    '(add-to-list 'company-backends 'company-irony)))
+
+(use-package cmake-ide
+  :config
+  (cmake-ide-setup))
+
+(use-package intero
+  :config
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+  (add-hook 'haskell-mode-hook 'intero-mode))
+
+(use-package hindent
+  :config
+  (add-hook 'haskell-mode-hook 'hindent-mode))
+
+(use-package sly
+  :init
+  (setq inferior-lisp-program "sbcl"))
+
+(use-package sly-company
+  :config
+  (add-hook 'sly-mode-hook 'sly-company-mode)
+  (add-to-list 'company-backends 'sly-company))
+
+(use-package projectile
+  :config
+  (projectile-global-mode))
+
+(use-package helm-projectile
+  :config
+  (helm-projectile-on))
+
+(global-set-key (kbd "M-o") 'other-window)
+
 (add-hook 'prog-mode-hook 'electric-indent-mode)
 
 (scroll-bar-mode -1)
@@ -127,18 +170,10 @@
               c-default-style "stroustrup"
 			  tab-width 4
 			  c-basic-offset 4
-			  c-offsets-alist '((access-label . -)
-                                (inclass . ++)
-				(case-label . +))
 
 			  inhibit-startup-screen t)
 
 (global-auto-revert-mode 1) ; autoreload files
-
-(global-set-key (kbd "C-<left>")  'windmove-left)
-(global-set-key (kbd "C-<right>") 'windmove-right)
-(global-set-key (kbd "C-<up>")    'windmove-up)
-(global-set-key (kbd "C-<down>")  'windmove-down)
 
 ; (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
