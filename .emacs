@@ -25,7 +25,7 @@
  '(org-agenda-files nil)
  '(package-selected-packages
    (quote
-    (helm-projectile projectile sly-company sly realgud hindent intero cmake-ide company-irony irony cmake-font-lock paredit lua-mode cider expand-region whitespace-cleanup-moe whitespace-cleanup-mode company company-mode toml-mode use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum llvm-mode dracula-theme rainbow-delimiters undo-tree)))
+    (flycheck-rtags company-rtags helm-rtags rtags helm-projectile projectile sly-company sly realgud hindent intero cmake-ide company-irony irony cmake-font-lock paredit lua-mode cider expand-region whitespace-cleanup-moe whitespace-cleanup-mode company company-mode toml-mode use-package rust-mode go-mode ocp-indent tuareg helm keychain-environment uptimes dockerfile-mode ssh-agency magithub yaml-mode bison-mode magit nlinum llvm-mode dracula-theme rainbow-delimiters undo-tree)))
  '(smooth-scrolling-mode t)
  '(tramp-syntax (quote default) nil (tramp))
  '(vc-annotate-background "#2B2B2B")
@@ -116,21 +116,34 @@
   (add-hook 'lisp-mode-hook #'paredit-mode)
   (add-hook 'emacs-lisp-mode-hook #'paredit-mode))
 
-(use-package irony
+(use-package flycheck
   :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+  (global-flycheck-mode))
 
-(use-package company-irony
-  :config
-  (eval-after-load 'company
-    '(add-to-list 'company-backends 'company-irony)))
+;; === RTags ===
 
-(use-package cmake-ide
+(use-package rtags
   :config
-  (cmake-ide-setup))
+  (add-hook 'c-mode-hook 'rtags-start-process-unless-running)
+  (add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
+  (rtags-enable-standard-keybindings))
+
+(use-package helm-rtags
+  :config
+  (setq rtags-display-result-backend 'helm))
+
+(use-package company-rtags
+  :init
+  (setq rtags-autostart-diagnostics t)
+  (setq rtags-completions-enabled t)
+  :config
+  (push 'company-rtags company-backends))
+
+(use-package flycheck-rtags)
+
+;; ===
+
+;; === Haskell ===
 
 (use-package intero
   :config
@@ -141,6 +154,10 @@
   :config
   (add-hook 'haskell-mode-hook 'hindent-mode))
 
+;; ===
+
+;; === Lisp ==
+
 (use-package sly
   :init
   (setq inferior-lisp-program "sbcl"))
@@ -150,6 +167,10 @@
   (add-hook 'sly-mode-hook 'sly-company-mode)
   (add-to-list 'company-backends 'sly-company))
 
+;; ===
+
+;; === Projectile ===
+
 (use-package projectile
   :config
   (projectile-global-mode))
@@ -157,6 +178,8 @@
 (use-package helm-projectile
   :config
   (helm-projectile-on))
+
+;; ===
 
 (global-set-key (kbd "M-o") 'other-window)
 
