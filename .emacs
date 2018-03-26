@@ -56,12 +56,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(delete-selection-mode 1)
-
 (setq exec-path (append exec-path '("~/.local/bin")))
-(require 'site-gentoo)
-
-(setq gc-cons-threshold 100000000)
 
 ;; === Package management
 
@@ -83,7 +78,7 @@
 
 (use-package rainbow-delimiters
   :config
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package helm
   :demand t
@@ -113,7 +108,7 @@
 
 (use-package company
   :config
-  (add-hook 'after-init-hook 'global-company-mode))
+  :hook (after-init . global-company-mode))
 
 (use-package whitespace-cleanup-mode
   :config
@@ -133,6 +128,14 @@
 (use-package ace-window
   :bind (("M-o" . ace-window)))
 
+(use-package erc
+  :config
+  (add-to-list 'erc-modules 'notifications)
+  (erc-update-modules))
+
+(use-package edit-indirect
+  :bind (("C-c e i" . edit-indirect-region)))
+
 (use-package dockerfile-mode)
 
 (use-package markdown-mode)
@@ -147,9 +150,9 @@
 
 (use-package rtags
   :config
-  (add-hook 'c-mode-hook 'rtags-start-process-unless-running)
-  (add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
-  (rtags-enable-standard-keybindings))
+  (rtags-enable-standard-keybindings)
+
+  :hook ((c-mode c++-mode) . rtags-start-process-unless-running))
 
 (use-package helm-rtags
   :after (helm rtags)
@@ -174,7 +177,7 @@
 
 ;; === Haskell ===
 
-(use-package haskell-mode)
+;; (use-package haskell-mode)
 
 ;; (use-package intero
 ;;   :config
@@ -193,14 +196,12 @@
   :after (sly company)
 
   :config
-  (add-hook 'sly-mode-hook 'sly-company-mode)
-  (add-to-list 'company-backends 'sly-company))
+  (add-to-list 'company-backends 'sly-company)
+
+  :hook (sly-mode . sly-company-mode))
 
 (use-package paredit
-  :config
-  (add-hook 'clojure-mode-hook #'paredit-mode)
-  (add-hook 'lisp-mode-hook #'paredit-mode)
-  (add-hook 'emacs-lisp-mode-hook #'paredit-mode))
+  :hook ((clojure-mode list-mode emacs-lisp-mode) . paredit-mode))
 
 ;; ===
 
@@ -225,8 +226,7 @@
 (use-package flycheck-rust
   :after (rust-mode flycheck)
 
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+  :hook (flycheck-mode . flycheck-rust-setup))
 
 ;; ===
 
@@ -234,8 +234,9 @@
 
 (use-package robe
   :config
-  (add-hook 'ruby-mode-hook 'robe-mode)
-  (push 'company-robe company-backends))
+  (push 'company-robe company-backends)
+
+  :hook (ruby-mode . robe-mode))
 
 (use-package slim-mode)
 
@@ -256,58 +257,87 @@
 ;; ===
 
 
-(add-hook 'prog-mode-hook 'electric-indent-mode)
+;; Built-in
 
-(scroll-bar-mode -1)
+(use-package delsel
+  :straight nil
+
+  :config
+  (delete-selection-mode 1))
+
+(use-package site-gentoo
+  :straight nil
+
+  :if (string-match-p "gentoo" operating-system-release))
+
+(use-package electric
+  :straight nil
+
+  :hook (prog-mode . electric-indent-mode))
+
+(use-package scroll-bar
+  :straight nil
+
+  :config
+  (scroll-bar-mode -1))
+
+(use-package autorevert
+  :straight nil
+
+  :config
+  (global-auto-revert-mode 1))
+
+(use-package files
+  :straight nil
+
+  :custom
+  (backup-directory-alist `((".*" . ,temporary-file-directory)))
+  (auto-save-file-name-transforms `((".*" ,temporary-file-directory t))))
+
+(use-package mwheel
+  :straight nil
+
+  :custom
+  (mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control) . nil)))
+  (mouse-wheel-progressive-speed nil))
+
+(use-package font-lock
+  :straight nil
+
+  :custom
+  (font-lock-maximum-decoration 2))
+
+(use-package simple
+  :straight nil
+
+  :hook (before-save . delete-trailing-whitespace))
+
+;; ===
+
+;; Defined in emacs' C code
+
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
 (setq-default indent-tabs-mode nil
+
+              tab-width 4
+
               c-default-style "stroustrup"
-			  tab-width 4
 			  c-basic-offset 4
 
 			  inhibit-startup-screen t)
 
-(global-auto-revert-mode 1) ; autoreload files
+;; ===
 
-; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
-
-(setq mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control) . nil)))
-(setq mouse-wheel-progressive-speed nil)
-
-(setq font-lock-maximum-decoration 2)
-
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+;; (add-to-list 'default-frame-alist '(fullscreen . maximized)
 
 ;; Makes *scratch* empty.
 (setq initial-scratch-message "")
 
-;; Removes *scratch* from buffer after the mode has been set.
-(defun remove-scratch-buffer ()
-  (if (get-buffer "*scratch*")
-      (kill-buffer "*scratch*")))
-(add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
-
-;; Removes *messages* from the buffer.
-(setq-default message-log-max nil)
-(kill-buffer "*Messages*")
-
-;; Removes *Completions* from buffer after you've opened a file.
-(add-hook 'minibuffer-exit-hook
-      '(lambda ()
-         (let ((buffer "*Completions*"))
-           (and (get-buffer buffer)
-                (kill-buffer buffer)))))
-
 ;; Don't show *Buffer list* when opening multiple files at the same time.
 (setq inhibit-startup-buffer-menu t)
 
-(setq doc-view-continuous t) ; docmode scroll
+(setq doc-view-continuous t)
 
 (fset 'yes-or-no-p 'y-or-n-p)
