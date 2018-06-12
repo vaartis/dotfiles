@@ -2,12 +2,7 @@
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-;; (package-initialize)
 
-;; (setq package-archives
-;;       '(("gnu" . "https://elpa.gnu.org/packages/")
-;;         ("marmalade" . "https://marmalade-repo.org/packages/")
-;;         ("melpa" . "https://melpa.org/packages/")))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -89,7 +84,7 @@
 
   :bind (("M-x" . helm-M-x)
          ("C-x C-f" . helm-find-files)
-         ;; ("C-x b" . helm-mini)
+         ("C-x b" . helm-mini)
          ("M-y" . helm-show-kill-ring)))
 
 (use-package undo-tree
@@ -209,7 +204,7 @@
 
 (use-package projectile
   :config
-  (projectile-global-mode))
+  (projectile-mode))
 
 (use-package helm-projectile
   :after (helm projectile)
@@ -230,20 +225,6 @@
 
 ;; ===
 
-;; === Ruby ===
-
-(use-package robe
-  :config
-  (push 'company-robe company-backends)
-
-  :hook (ruby-mode . robe-mode))
-
-(use-package slim-mode)
-
-(use-package scss-mode)
-
-;; ===
-
 ;; === Elixir ===
 
 (use-package alchemist)
@@ -255,6 +236,42 @@
   (flycheck-dialyxir-setup))
 
 ;; ===
+
+;; === Scala
+
+(use-package ensime
+  :init
+  (setq ensime-startup-notification nil))
+
+(use-package play-routes-mode)
+
+;;
+
+;; Web
+
+(use-package web-mode
+  :mode ("\\.scala.html\\'"
+         "\\.html?\\'"
+         "\\.jsx?\\'"
+         "\\.vue\\'"))
+
+(use-package indium
+  :config
+  (add-hook #'web-mode-hook #'indium-interaction-mode))
+
+;;
+
+;; Debug
+
+(use-package realgud)
+
+;; ===
+
+;; == C/++
+
+(use-package bison-mode)
+
+;;
 
 
 ;; Built-in
