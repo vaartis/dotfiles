@@ -141,32 +141,37 @@
 
 ;; ===
 
-;; === RTags ===
+;; === LSP ===
 
-(use-package rtags
+(use-package lsp-mode)
+
+(use-package lsp-ui
+  :after (lsp-mode)
+
+  :hook
+  (lsp-mode . lsp-ui-mode)
+
+  :bind (:map lsp-ui-mode-map
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references] . lsp-ui-peek-find-references)
+              ([remap xref-find-apropos] . lsp-ui-peek-workspace-symbol)))
+
+(use-package company-lsp
+  :custom
+  (company-transformers nil)
+  (company-lsp-cache-candidates nil)
+
   :config
-  (rtags-enable-standard-keybindings)
+  (push 'company-lsp company-backends))
 
-  :hook ((c-mode c++-mode) . rtags-start-process-unless-running))
+;; ===
 
-(use-package helm-rtags
-  :after (helm rtags)
+;; === CQuery ===
 
-  :config
-  (setq rtags-display-result-backend 'helm))
-
-(use-package company-rtags
-  :after (company rtags)
-
-  :init
-  (setq rtags-autostart-diagnostics t)
-  (setq rtags-completions-enabled t)
-
-  :config
-  (push 'company-rtags company-backends))
-
-(use-package flycheck-rtags
-  :after (flycheck rtags))
+(use-package cquery
+  :custom
+  (cquery-executable "~/Code/cquery/_build/cquery")
+  (cquery-sem-highlight-method 'font-lock))
 
 ;; ===
 
@@ -204,7 +209,12 @@
 
 (use-package projectile
   :config
-  (projectile-mode))
+  (projectile-mode)
+  (add-to-list 'projectile-globally-ignored-directories "_build")
+  (add-to-list 'projectile-globally-ignored-directories ".cquery_cached_index")
+
+  :bind-keymap
+  ("C-c p" . projectile-command-map))
 
 (use-package helm-projectile
   :after (helm projectile)
@@ -254,10 +264,6 @@
          "\\.html?\\'"
          "\\.jsx?\\'"
          "\\.vue\\'"))
-
-(use-package indium
-  :config
-  (add-hook #'web-mode-hook #'indium-interaction-mode))
 
 ;;
 
@@ -325,9 +331,7 @@
   (font-lock-maximum-decoration 2))
 
 (use-package simple
-  :straight nil
-
-  :hook (before-save . delete-trailing-whitespace))
+  :straight nil)
 
 ;; ===
 
@@ -336,11 +340,16 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
+(c-add-style "my"
+             '("stroustrup"
+               (c-offsets-alist
+                (arglist-close . 0))))
+
 (setq-default indent-tabs-mode nil
 
               tab-width 4
 
-              c-default-style "stroustrup"
+              c-default-style "my"
 			  c-basic-offset 4
 
 			  inhibit-startup-screen t)
