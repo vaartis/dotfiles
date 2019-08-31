@@ -14,7 +14,7 @@
  '(custom-enabled-themes (quote (dracula)))
  '(custom-safe-themes
    (quote
-    ("ff7625ad8aa2615eae96d6b4469fcc7d3d20b2e1ebc63b761a349bebbb9d23cb" "d9129a8d924c4254607b5ded46350d68cc00b6e38c39fc137c3cfb7506702c12" "dd4db38519d2ad7eb9e2f30bc03fba61a7af49a185edfd44e020aa5345e3dca7" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" default)))
+    ("e598fb69b8d73182d82e37015f0df7e31b47784e8f393bfa5962fabd9b77677b" "ff7625ad8aa2615eae96d6b4469fcc7d3d20b2e1ebc63b761a349bebbb9d23cb" "d9129a8d924c4254607b5ded46350d68cc00b6e38c39fc137c3cfb7506702c12" "dd4db38519d2ad7eb9e2f30bc03fba61a7af49a185edfd44e020aa5345e3dca7" "b571f92c9bfaf4a28cb64ae4b4cdbda95241cd62cf07d942be44dc8f46c491f4" default)))
  '(fci-rule-color "#383838")
  '(smooth-scrolling-mode t)
  '(vc-annotate-background "#2B2B2B")
@@ -51,8 +51,6 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(setq exec-path (append exec-path '("~/.local/bin")))
-
 ;; === Package management
 
 (straight-use-package 'use-package)
@@ -66,6 +64,12 @@
 ;; ===
 
 ;; === Misc
+
+(use-package exec-path-from-shell
+  :custom
+  (exec-path-from-shell-check-startup-files nil)
+  :config
+  (exec-path-from-shell-initialize))
 
 (use-package keychain-environment
   :config
@@ -124,8 +128,11 @@
   :bind (("M-o" . ace-window)))
 
 (use-package erc
+  :custom
+  (erc-log-channels-directory "~/.emacs.d/erc-logs/")
   :config
   (add-to-list 'erc-modules 'notifications)
+  (add-to-list 'erc-modules 'log)
   (erc-update-modules))
 
 (use-package edit-indirect
@@ -133,11 +140,15 @@
 
 (use-package dockerfile-mode)
 
-(use-package markdown-mode)
-
 (use-package yaml-mode)
 
 (use-package dracula-theme)
+
+(use-package markdown-mode
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :custom (markdown-command "pandoc"))
 
 ;; ===
 
@@ -164,6 +175,9 @@
   :config
   (push 'company-lsp company-backends))
 
+(use-package yasnippet
+  :hook (prog-mode . yas-minor-mode))
+
 ;; ===
 
 ;; === CQuery ===
@@ -188,20 +202,22 @@
 
 ;; === Lisp ==
 
+;; :straight (cider :host github
+;;                 :repo "clojure-emacs/cider"
+;;                 :branch "v0.21.0"
+;;                 :files ("*.el" (:exclude ".dir-locals.el")))
+
+;; (use-package cider)
+
 (use-package sly
   :init
-  (setq inferior-lisp-program "sbcl"))
+  (setq inferior-lisp-program "sbcl")
 
-(use-package sly-company
-  :after (sly company)
-
-  :config
-  (add-to-list 'company-backends 'sly-company)
-
-  :hook (sly-mode . sly-company-mode))
+  :custom
+  (sly-complete-symbol-function #'sly-flex-completions))
 
 (use-package paredit
-  :hook ((clojure-mode list-mode emacs-lisp-mode) . paredit-mode))
+  :hook ((clojure-mode lisp-mode emacs-lisp-mode) . paredit-mode))
 
 ;; ===
 
@@ -233,6 +249,19 @@
 
   :hook (flycheck-mode . flycheck-rust-setup))
 
+(use-package lsp-rust
+  :hook (rust-mode . lsp-rust-enable)
+  :hook (rust-mode . flycheck-mode))
+
+;; ===
+
+(use-package go-mode)
+
+
+;; === GLSL ===
+
+(use-package glsl-mode)
+
 ;; ===
 
 ;; === Elixir ===
@@ -244,6 +273,9 @@
 
   :config
   (flycheck-dialyxir-setup))
+
+(use-package elixir-mode
+  :hook (elixir-mode . (lambda () (add-hook 'before-save-hook 'elixir-format nil t))))
 
 ;; ===
 
@@ -261,6 +293,7 @@
 
 (use-package web-mode
   :mode ("\\.scala.html\\'"
+         "\\.html.eex\\'"
          "\\.html?\\'"
          "\\.jsx?\\'"
          "\\.vue\\'"))
@@ -278,7 +311,6 @@
 (use-package bison-mode)
 
 ;;
-
 
 ;; Built-in
 
@@ -333,6 +365,11 @@
 (use-package simple
   :straight nil)
 
+(use-package frame
+  :straight nil
+  :config
+  (set-frame-font "Inconsolata 12"))
+
 ;; ===
 
 ;; Defined in emacs' C code
@@ -343,7 +380,8 @@
 (c-add-style "my"
              '("stroustrup"
                (c-offsets-alist
-                (arglist-close . 0))))
+                (arglist-close . 0)
+                (innamespace . 0))))
 
 (setq-default indent-tabs-mode nil
 
